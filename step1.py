@@ -93,7 +93,12 @@ def data_gen ():
 	while ct <= nt:
 		#print "data_gen() ct =", ct
 		ct += 1
-		for i in range(nx): yprev[i] = ydata[i]
+
+		# copy contents of ydata to yprev
+		#yprev = ydata   # NO - only sets pointer
+		#for i in range(nx): yprev[i] = ydata[i]
+		yprev[:] = ydata[:]
+
 		for i in range(1,nx-1):
 			ydata[i] = yprev[i] - (c*dt/dx)*(yprev[i]-yprev[i-1])
 			#ydata[i] = yprev[i] - (c*dt/(2.0*dx))*(yprev[i+1]-yprev[i-1])		# central diff - not stable for any c (?)
