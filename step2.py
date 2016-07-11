@@ -57,14 +57,14 @@ def init ():
 		y = 1.0
 
 		# initialize range [.5,1] with various test fns
-		#if x >= .5 and x <= 1.0: y = 2.0		# square wave
+		if x >= .5 and x <= 1.0: y = 2.0		# square wave
 		#if x >= .5 and x <= 1.0: y = 1.0 + np.sin((x-.5)*np.pi*2.0)	# half-sine
 #		if x >= .5 and x <= 1.0:				# full inverted cosine
 #			#print "t = " + str(np.cos((x-.5)*np.pi*4.0))
 #			y = 1.0 + .5*(1.0 - np.cos((x-.5)*np.pi*4.0))
 #			#print "y = " + str(y)
 		#y -= .5
-		if x >= .5 and x <= 1.0: y = 1.0 + .5*np.sin((x-.5)*np.pi*4.0)	# full-sine
+		#if x >= .5 and x <= 1.0: y = 1.0 + .5*np.sin((x-.5)*np.pi*4.0)	# full-sine
 
 		ydata.append(y)
 		yprev.append(y)
