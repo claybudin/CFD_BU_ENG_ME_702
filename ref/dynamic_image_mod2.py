@@ -6,13 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-def f (x, y):
-	#return np.sin(x) + np.cos(y)
-	return x+y
+import random
 
-# x is horizontal (regular) array, y is vertical 1xn array
-x = np.linspace(0, 2 * np.pi, 120)
-y = np.linspace(0, 2 * np.pi, 100).reshape(-1, 1)
 
 fig = plt.figure()
 #im = plt.imshow(f(x, y), cmap=plt.get_cmap('viridis'), animated=True)
@@ -47,22 +42,24 @@ im = plt.imshow(A)
 
 
 def updatefig (*args):
-	print "updatefig()"
+	#print "updatefig()"
 
-	global x, y
-	x += np.pi / 15.
-	y += np.pi / 20.
-	#im.set_array(f(x, y))
+	#A[10][200] = 1.0
+	#A[random.randint(0,239)][random.randint(0,319)] = 1.0
+	#yield
 
-	#return im,
-	yield
+	for yi in range(240):
+		for xi in range(320):
+			#print "xi = " + str(xi) + " yi = " + str(yi)
+			A[yi][xi] = 1.0
+			yield
 
 def run (data):
 	#print "run()"
-	im.set_array(f(x, y))
+	im.set_array(A)
 
 
-#ani = animation.FuncAnimation(fig, run, updatefig, interval=50, blit=False)
+ani = animation.FuncAnimation(fig, run, updatefig, interval=10, blit=False)
 
 plt.show()
 

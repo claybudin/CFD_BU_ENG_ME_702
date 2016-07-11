@@ -9,6 +9,7 @@ Using Anaconda for Python 2.7 numerical and scientific computing package:
 
 https://www.continuum.io/downloads
 
+Please let me know if you find these files useful!
 
 
 
