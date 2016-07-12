@@ -24,6 +24,7 @@ from mpl_toolkits.mplot3d import axes3d
 import matplotlib.animation as anim
 
 import time
+import sys
 
 
 
@@ -35,9 +36,8 @@ ax = fig.add_subplot(111, projection='3d')
 #matplotlib.use("Agg")
 #FFMpegWriter = anim.writers['ffmpeg']
 matplotlib.verbose.level = 'debug'
-#matplotlib.verbose.fileo = 'verbose.log'
 matplotlib.verbose.fileo = sys.stdout
-metadata = dict(title='Movie Test', artist='Matplotlib', comment='Movie support!')
+metadata = dict(title='"Movie Test"', artist='Matplotlib', comment='"Movie support!"')
 #writer = FFMpegWriter(fps=15, metadata=metadata)
 writer = anim.FFMpegFileWriter(fps=15, metadata=metadata)
 
@@ -46,7 +46,7 @@ writer = anim.FFMpegFileWriter(fps=15, metadata=metadata)
 # simulation constants
 nx = 201
 ny = 201
-nt = 10 #150
+nt = 150
 visc = .0025
 dt = 0.01
 dx = 2.0 / (nx-1.0)
@@ -95,7 +95,7 @@ for yi in range(ny):
 wframe = None
 tstart = time.time()
 
-with writer.saving(fig, "step7_3D.mp4", nt):
+with writer.saving(fig, "step7_3D.mp4", fig.dpi):
 
 	for ct in range(nt):
 
