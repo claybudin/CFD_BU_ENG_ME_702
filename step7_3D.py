@@ -121,8 +121,8 @@ with writer.saving(fig, "step7_3D.mp4", fig.dpi):
 				n[yi][xi] = o[yi][xi] + (visc*dt/(dx*dx))*(o[yi][xi+1]-2*o[yi][xi]+o[yi][xi-1]) + \
 									    (visc*dt/(dy*dy))*(o[yi+1][xi]-2*o[yi][xi]+o[yi-1][xi])
 
-		wframe = ax.plot_wireframe(X, Y, n, rstride=5, cstride=5)	# default strides are 1
-		#wframe = ax.plot_surface(X, Y, n, rstride=5, cstride=5)	# default strides are 10
+		#wframe = ax.plot_wireframe(X, Y, n, rstride=5, cstride=5)	# default strides are 1
+		wframe = ax.plot_surface(X, Y, n, rstride=5, cstride=5)	# default strides are 10
 		#wframe = ax.scatter(X, Y, n, s=1, c='b')	# NOTE: doesn't have strides
 
 		# Remove old line collection before drawing

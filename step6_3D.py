@@ -6,7 +6,7 @@ Created on Thu Jul  7 16:05:12 2016
 
 Step 6: 2D non-linear convection
 	du/dt + u*du/dx + v*du/dy = 0
-	du/dt + u*dv/dx + v*dv/dy = 0
+	dv/dt + u*dv/dx + v*dv/dy = 0
 
 Now 2 output variables (or one 2D solution function): u and v
 

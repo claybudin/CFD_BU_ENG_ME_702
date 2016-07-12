@@ -4,9 +4,9 @@ Created on Thu Jul  7 16:05:12 2016
 
 @author: clay_budin
 
-Step 6: 2D non-linear convection
-	du/dt + u*du/dx + v*du/dy = 0
-	dv/dt + u*dv/dx + v*dv/dy = 0
+Step 8: 2D Burgers's Equation
+	du/dt + u*du/dx + v*du/dy - visc*(d^2u/dx^2 + d^2u/dy^2) = 0
+	dv/dt + u*dv/dx + v*dv/dy - visc*(d^2v/dx^2 + d^2v/dy^2) = 0
 
 Now 2 output variables (or one 2D solution function): u and v
 
@@ -39,8 +39,9 @@ p2.set_title("V")
 # simulation constants
 nx = 201
 ny = 201
-nt = 150
-dt = 0.0025 #0.01
+nt = 200
+visc = 0.0025
+dt = .002 #.0015 #0.0025 #0.01
 dx = 2.0 / (nx-1.0)
 dy = 2.0 / (ny-1.0)
 
@@ -116,10 +117,10 @@ def data_gen ():
 
 		for yi in range(1,ny-1):
 			for xi in range(1,nx-1):
-				un[yi][xi] = uo[yi][xi] - (uo[yi][xi]*dt/dx)*(uo[yi][xi]-uo[yi][xi-1]) - (vo[yi][xi]*dt/dy)*(uo[yi][xi]-uo[yi-1][xi])
-				vn[yi][xi] = vo[yi][xi] - (uo[yi][xi]*dt/dx)*(vo[yi][xi]-vo[yi][xi-1]) - (vo[yi][xi]*dt/dy)*(vo[yi][xi]-vo[yi-1][xi])
-				#ydata[i] = yprev[i] - (c*dt/(2.0*dx))*(yprev[i+1]-yprev[i-1])		# central diff - not stable for any c (?)
-				#ydata[i] = yprev[i] + (c*dt/dx)*(yprev[i+1]-yprev[i])				# change sign, use forward diff - wave moves to left
+				un[yi][xi] = uo[yi][xi] - (uo[yi][xi]*dt/dx)*(uo[yi][xi]-uo[yi][xi-1]) - (vo[yi][xi]*dt/dy)*(uo[yi][xi]-uo[yi-1][xi]) + \
+								 (visc*dt/(dx*dx))*(uo[yi][xi+1]-2*uo[yi][xi]+uo[yi][xi-1]) + (visc*dt/(dy*dy))*(uo[yi+1][xi]-2*uo[yi][xi]+uo[yi-1][xi])
+				vn[yi][xi] = vo[yi][xi] - (uo[yi][xi]*dt/dx)*(vo[yi][xi]-vo[yi][xi-1]) - (vo[yi][xi]*dt/dy)*(vo[yi][xi]-vo[yi-1][xi]) + \
+								 (visc*dt/(dx*dx))*(vo[yi][xi+1]-2*vo[yi][xi]+vo[yi][xi-1]) + (visc*dt/(dy*dy))*(vo[yi+1][xi]-2*vo[yi][xi]+vo[yi-1][xi])
 		yield
 
 
