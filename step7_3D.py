@@ -95,6 +95,13 @@ for yi in range(ny):
 wframe = None
 tstart = time.time()
 
+# something's broken in the writer - this will run through the animation sequance and save the
+#  files but will crash when it goes to build the movie
+# fortunately it prints out the command line it is trying to use so it can be run manually and
+#  then the temp image frame files can be deleted
+# might need to set something in the matplotlibrc or something
+# it seems to be complaining about bad file handles
+#
 with writer.saving(fig, "step7_3D.mp4", fig.dpi):
 
 	for ct in range(nt):
