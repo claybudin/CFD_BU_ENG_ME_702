@@ -26,6 +26,8 @@ Source (function b):
 	b = -100 @ (3nx/4, 3ny/4)
 	b = 0 everywhere else
 made B spikes +/- 10000 because otherwise they were having almost no effect
+despite large values of B, they seem to have a tiny effect on the graph, due probably to the fact
+ that B is scaled by dx*dx*dy*dy
 
 """
 

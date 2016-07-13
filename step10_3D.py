@@ -95,8 +95,6 @@ tstart = time.time()
 frmNum = 0
 for ct in xrange(nt):
 
-	oldcol = wframe
-
 	po, pn = [], []
 	if ping1to2:
 		po = P1
@@ -113,8 +111,10 @@ for ct in xrange(nt):
 
 
 	if ct % 100 == 0:
+		oldcol = wframe
+
 		#wframe = p1.plot_wireframe(X, Y, un, rstride=5, cstride=5)	# default strides are 1
-		wframe = p1.plot_surface(X, Y, pn, rstride=5, cstride=5, cmap=cm.magma, vmin=-1.0, vmax=1.0, linewidth=0)	# default strides are 10
+		wframe = p1.plot_surface(X, Y, pn, rstride=5, cstride=5, cmap=cm.magma, vmin=-1.1, vmax=1.1, linewidth=0)	# default strides are 10
 		#wframe = p1.scatter(X, Y, un, s=1, c='b')	# NOTE: doesn't have strides
 
 		# for some reason, this moves down through surface plot as frames progress
@@ -128,6 +128,7 @@ for ct in xrange(nt):
 		# can build movie on command line with:
 		#	ffmpeg -i tmp4/frm%04d.png -r 15 -vcodec mpeg4 -y step9_3Dsurf.mp4
 		fig.savefig("tmp4/frm%04d.png" % frmNum, dpi='figure')
+		print "Frame " + str(frmNum)
 		frmNum += 1
 
 	plt.pause(.001)
