@@ -4,10 +4,11 @@ Created on Thu Jul  7 16:05:12 2016
 
 @author: clay_budin
 
-Step 9: 2D Laplace Equation
-	d^2p/dx^2 + d^2p/dy^2 = 0
+Step 10: 2D Poisson Equation
+	d^2p/dx^2 + d^2p/dy^2 = b
 
 Solving for pressure, p(x,y) -> R (scalar)
+b is a fixed scalar function defined over domain
 
 No time dependency (steady-state solution) but we will use an interative pseudo-time approach
 to solving
@@ -16,11 +17,17 @@ Forward diff in psuedo-time
 Centered diff in space
 
 Domain: [0,2] x [0,1]
-Range: [0,1]
-Initial Conditions: p = 0 everywhere (except at boundary condition below?)
-Boundary Conditions: p = 0 @ x = 0, p = y @ x = 2, dp/dy = 0 @ y = 0,1
-  these BCs seem to conflict at x = 2 since dp/dy there = 1
+Range: [-100,100]
+Initial Conditions: p = 0
+Boundary Conditions: p = 0 @ x = 0,2, y = 0,1
 
+Source (function b):
+	b = 100 @ (nx/4, ny/4)
+	b = -100 @ (3nx/4, 3ny/4)
+	b = 0 everywhere else
+made B spikes +/- 10000 because otherwise they were having almost no effect
+despite large values of B, they seem to have a tiny effect on the graph, due probably to the fact
+ that B is scaled by dx*dx*dy*dy
 
 """
 
@@ -34,13 +41,9 @@ import time
 
 
 # graphing vars
-fig = plt.figure(figsize=[16.0,6.0])
-#print str(fig.get_figwidth()) + " x " + str(fig.get_figheight())
-p1 = fig.add_subplot(121, projection='3d');
-p2 = fig.add_subplot(122, projection='3d');
-
+fig = plt.figure(figsize=[8.0,6.0])
+p1 = fig.add_subplot(111, projection='3d');
 p1.set_title("P - 0")
-p2.set_title("P - Analytic")
 
 
 
@@ -62,7 +65,7 @@ X, Y = np.meshgrid(xs, ys)
 # access as A[yi][xi]
 P1 = X + Y
 P2 = X + Y
-PA = X + Y
+B = X + Y
 ping1to2 = True
 
 
@@ -74,25 +77,15 @@ for yi in xrange(ny):
 
 		# initialize arrays
 		p = 0.0
-		# boundary condition p = y @ x = 2
-		if x == 2.0: p = y
 
-		# analytic solution
-		sum = 0.0
-		for n in xrange(10):
-			nn = 2.0*n+1.0
-			sum += (np.sinh(nn*np.pi*x)*np.cos(nn*np.pi*y)) / ((nn*np.pi)*(nn*np.pi)*np.sinh(2*np.pi*nn))
-		pa = x/4.0 - 4.0*sum
+		# initialize source
+		b = 0.0
+		if xi == nx/4 and yi == ny/4: b = 10000.0
+		if xi == 3*nx/4 and yi == 3*ny/4: b = -10000.0
 
 		P1[yi][xi] = p
 		P2[yi][xi] = p
-		PA[yi][xi] = pa
-
-
-#ax.scatter(X, Y, U1, s=1, c='b')	# doesn't have strides
-#ax.plot_wireframe(X, Y, U1, rstride=10, cstride=10)
-
-p2.plot_surface(X, Y, PA, rstride=5, cstride=5, cmap=cm.magma, vmin=0.0, vmax=1.0, linewidth=0)
+		B[yi][xi] = b
 
 
 # plot in 3D - based on wire3d_animation_demo.py
@@ -116,17 +109,12 @@ for ct in xrange(nt):
 	# wouldn't be hard to run this on multiple CPUs - all would need access to po and write to different places in pn
 	for yi in xrange(1,ny-1):
 		for xi in xrange(1,nx-1):
-			pn[yi][xi] = (1.0/(2.0*(dx*dx+dy*dy))) * (dy*dy*(po[yi][xi+1]+po[yi][xi-1]) + dx*dx*(po[yi+1][xi]+po[yi-1][xi]))
+				pn[yi][xi] = (1.0/(2.0*(dx*dx+dy*dy))) * (dy*dy*(po[yi][xi+1]+po[yi][xi-1]) + dx*dx*(po[yi+1][xi]+po[yi-1][xi]) - dx*dx*dy*dy*B[yi][xi])
 
-	# enforce boundary conditions dp/dy = 0 @ y = 0,1
-	# not sure why we aren't changing x values at indices 0 and nx-1 - guess to enfore BCs on x
-	for xi in xrange(1,nx-1):
-		pn[0][xi] = pn[1][xi]
-		pn[ny-1][xi] = pn[ny-2][xi]
 
 	if ct % 100 == 0:
 		#wframe = p1.plot_wireframe(X, Y, un, rstride=5, cstride=5)	# default strides are 1
-		wframe = p1.plot_surface(X, Y, pn, rstride=5, cstride=5, cmap=cm.magma, vmin=0.0, vmax=1.0, linewidth=0)	# default strides are 10
+		wframe = p1.plot_surface(X, Y, pn, rstride=5, cstride=5, cmap=cm.magma, vmin=-1.0, vmax=1.0, linewidth=0)	# default strides are 10
 		#wframe = p1.scatter(X, Y, un, s=1, c='b')	# NOTE: doesn't have strides
 
 		# for some reason, this moves down through surface plot as frames progress
@@ -138,8 +126,8 @@ for ct in xrange(nt):
 
 		# save the current figure out as a frame for our movie
 		# can build movie on command line with:
-		#	ffmpeg -i tmp1/frm%04d.png -r 15 -vcodec mpeg4 -y step9_3Dsurf.mp4
-		fig.savefig("tmp1/frm%04d.png" % frmNum, dpi='figure')
+		#	ffmpeg -i tmp4/frm%04d.png -r 15 -vcodec mpeg4 -y step9_3Dsurf.mp4
+		fig.savefig("tmp4/frm%04d.png" % frmNum, dpi='figure')
 		frmNum += 1
 
 	plt.pause(.001)

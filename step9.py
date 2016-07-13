@@ -143,7 +143,7 @@ def run (data):
 
 		# save the current figure out as a frame for our movie
 		# can build movie on command line with:
-		#	ffmpeg -i tmp2/frm%04d.png -vframes 301 -r 15 -vcodec mpeg4 -y step9.mp4
+		#	ffmpeg -i tmp2/frm%04d.png -r 15 -vcodec mpeg4 -y step9.mp4
 		fig.savefig("tmp2/frm%04d.png" % (ct/100), dpi='figure')
 
 
