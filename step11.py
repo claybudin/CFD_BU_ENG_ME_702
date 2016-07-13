@@ -152,7 +152,6 @@ def data_gen ():
 		# set pn to newest buffer
 		pn = P1
 
-
 		# do one step in N-S for u and v using new pressure
 		for it in xrange(nit):
 			for yi in xrange(1,ny-1):
@@ -164,6 +163,10 @@ def data_gen ():
 								(dt/dx)*uo[yi][xi]*(vo[yi][xi]-vo[yi][xi-1]) - (dt/dy)*vo[yi][xi]*(vo[yi][xi]-vo[yi-1][xi]) - \
 								(dt/(2.0*rho*dy))*(pn[yi+1][xi]-pn[yi-1][xi]) + \
 								nu*dt*((vo[yi][xi+1]-2*vo[yi][xi]+vo[yi][xi-1])/(dx*dx) + (vo[yi+1][xi]-2*vo[yi][xi]+vo[yi-1][xi])/(dy*dy))
+
+
+		# enforce BCs: u = 1 @ y = 2, u,v = 0 @ x = 0,2 & y = 0
+		# NO - set at start and time-iteration doesn't touch edges, so shouldn't have to
 
 		yield
 
