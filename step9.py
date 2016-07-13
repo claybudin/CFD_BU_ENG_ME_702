@@ -41,15 +41,15 @@ p2.set_title("P - Analytic Solution")
 # simulation constants
 nx = 201
 ny = 101
-nt = 100000	# pseudo-time iteration steps - wow, need a lot of these
+nt = 30000	# pseudo-time iteration steps - wow, need a lot of these
 dx = 2.0 / (nx-1.0)
 dy = 1.0 / (ny-1.0)
 
 # simlation grids - 2D - ping-pong between them
 # access as A[yi][xi]
-P1 = [ [ 0.0 for xi in range(nx) ] for yi in range(ny) ]
-P2 = [ [ 0.0 for xi in range(nx) ] for yi in range(ny) ]
-PA = [ [ 0.0 for xi in range(nx) ] for yi in range(ny) ]
+P1 = [ [ 0.0 for xi in xrange(nx) ] for yi in xrange(ny) ]
+P2 = [ [ 0.0 for xi in xrange(nx) ] for yi in xrange(ny) ]
+PA = [ [ 0.0 for xi in xrange(nx) ] for yi in xrange(ny) ]
 ping1to2 = True
 
 # default color map is rainbow
@@ -70,8 +70,8 @@ def init ():
 
 	pmin = 1000000000.0
 	pmax = -1000000000.0
-	for yi in range(ny):
-		for xi in range(nx):
+	for yi in xrange(ny):
+		for xi in xrange(nx):
 			x = xi*dx
 			y = yi*dy
 
@@ -82,7 +82,7 @@ def init ():
 
 			# analytic solution
 			sum = 0.0
-			for n in range(10):
+			for n in xrange(10):
 				nn = 2.0*n+1.0
 				sum += (np.sinh(nn*np.pi*x)*np.cos(nn*np.pi*y)) / ((nn*np.pi)*(nn*np.pi)*np.sinh(2*np.pi*nn))
 			pa = x/4.0 - 4.0*sum
@@ -94,7 +94,7 @@ def init ():
 			if pa < pmin: pmin = pa
 			if pa > pmax: pmax = pa
 
-			#if yi == 10: U1[yi][xi] = x    # visualize color range
+			#if yi == 10: U1[yi][xi] = x    # visualize color xrange
 
 	im2.set_array(PA)
 	print "pmin = " + str(pmin) + " pmax = " + str(pmax)
@@ -116,13 +116,13 @@ def data_gen ():
 
 		# iterate
 		# wouldn't be hard to run this on multiple CPUs - all would need access to po and write to different places in pn
-		for yi in range(1,ny-1):
-			for xi in range(1,nx-1):
+		for yi in xrange(1,ny-1):
+			for xi in xrange(1,nx-1):
 				pn[yi][xi] = (1.0/(2.0*(dx*dx+dy*dy))) * (dy*dy*(po[yi][xi+1]+po[yi][xi-1]) + dx*dx*(po[yi+1][xi]+po[yi-1][xi]))
 
 		# enforce boundary conditions dp/dy = 0 @ y = 0,1
 		# not sure why we aren't changing x values at indices 0 and nx-1 - guess to enfore BCs on x
-		for xi in range(1,nx-1):
+		for xi in xrange(1,nx-1):
 			pn[0][xi] = pn[1][xi]
 			pn[ny-1][xi] = pn[ny-2][xi]
 
@@ -134,12 +134,18 @@ def run (data):
 
 	#print "run()"
 	#print "ping1to2 = " + str(ping1to2)
-	if ct % 100 == 0:
+	if ct == 1 or ct % 100 == 0:
 		if ping1to2:
 			im1.set_array(P2)
 		else:
 			im1.set_array(P1)
 		p1.set_title("P - %d" % ct)
+
+		# save the current figure out as a frame for our movie
+		# can build movie on command line with:
+		#	ffmpeg -i tmp2/frm%04d.png -vframes 301 -r 15 -vcodec mpeg4 -y step9.mp4
+		fig.savefig("tmp2/frm%04d.png" % (ct/100), dpi='figure')
+
 
 	ping1to2 = not ping1to2
 
