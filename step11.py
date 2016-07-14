@@ -60,14 +60,14 @@ frmDir = "tmp1"
 
 # physical constants
 rho = 1.0		# fluid density
-nu = .1 #0.0025 #0.01		# fluid viscosity
+nu = .02 #0.0025 #0.01		# fluid viscosity - scales as 1/dx
 
 # simulation constants
-nx = 20 #101 #201		# num grid X points
-ny = 20 #101 #201		# num grid Y points
-nt = 300 #201		# number of time steps in sim
-nit = 100	# pseudo-time iteration steps per time step (Poisson eq) - MUST BE EVEN
-dt = .01 #.002 #0.01
+nx = 101 #201		# num grid X points
+ny = 101 #201		# num grid Y points
+nt = 600 #201		# number of time steps in sim
+nit = 100	# pseudo-time iteration steps per time step (Poisson eq) - MUST BE EVEN - this should probably scale with dx
+dt = .002 #.002 #0.01   # time step - scales as 1/dx
 dx = 2.0 / (nx-1.0)
 dy = 2.0 / (ny-1.0)
 
@@ -83,9 +83,9 @@ B  = [ [ 0.0 for xi in xrange(nx) ] for yi in xrange(ny) ]		# rhs of pressure eq
 ping1to2 = True
 
 # default color map is rainbow
-im1 = p1.imshow(U1, vmin=0.0, vmax=1.0)
-im2 = p2.imshow(V1, vmin=0.0, vmax=1.0)
-im3 = p3.imshow(P1, vmin=0.0, vmax=1.0)
+im1 = p1.imshow(U1, vmin=-.1, vmax=1.0)
+im2 = p2.imshow(V1, vmin=-.1, vmax=1.0)		#vmin=0.0, vmax=.1)
+im3 = p3.imshow(P1, vmin=-1.0, vmax=1.0)
 
 # global var - current time step
 ct = 0
@@ -149,7 +149,7 @@ def data_gen ():
 			#for xi in xrange(1,nx-1):
 			for xi in xrange(nx):
 				pn[0][xi] = pn[1][xi]
-				pn[ny-1][xi] = pn[ny-2][xi]		# this is not actually in the BC specs
+				pn[ny-1][xi] = pn[ny-2][xi]		# this is not actually in the BC specs, but is in psuedo-code
 			#for yi in xrange(1,ny-1):
 			for yi in xrange(ny):
 				pn[yi][0] = pn[yi][1]
@@ -176,8 +176,8 @@ def data_gen ():
 								nu*dt*((vo[yi][xi+1]-2*vo[yi][xi]+vo[yi][xi-1])/(dx*dx) + (vo[yi+1][xi]-2*vo[yi][xi]+vo[yi-1][xi])/(dy*dy))
 
 
-		# enforce BCs: u = 1 @ y = 2, u,v = 0 @ x = 0,2 & y = 0
-		# NO - set at start and time-iteration doesn't touch edges, so shouldn't have to
+		# here pseudo-code enforces BCs: u = 1 @ y = 2, u,v = 0 @ x = 0,2 & y = 0
+		# NO - set at start and time-iteration doesn't touch edges of grids, so shouldn't have to
 
 		yield
 
