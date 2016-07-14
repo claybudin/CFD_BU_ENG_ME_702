@@ -97,7 +97,7 @@ def data_gen ():
 		for i in range(nx): yprev[i] = ydata[i]
 
 		for i in range(nx):
-			# enforce BC by wrapping indices
+			# enforce periodic BC by wrapping indices
 			im1 = i - 1
 			if (im1 < 0): im1 = nx-1
 			ip1 = i + 1
