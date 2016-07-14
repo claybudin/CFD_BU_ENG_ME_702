@@ -39,6 +39,11 @@ import matplotlib as matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+import os
+import shutil
+
+
+
 # graphing vars
 fig = plt.figure(figsize=(18.0,6.0), subplotpars=matplotlib.figure.SubplotParams(left=.05,right=.95))
 p1 = fig.add_subplot(131);
@@ -50,16 +55,19 @@ p3.set_title("P")
 
 
 
+# frame dir for movie
+frmDir = "tmp1"
+
 # physical constants
 rho = 1.0		# fluid density
-nu = 0.0025 #0.01		# fluid viscosity
+nu = .1 #0.0025 #0.01		# fluid viscosity
 
 # simulation constants
-nx = 201		# num grid X points
-ny = 201		# num grid Y points
-nt = 201		# number of time steps in sim
+nx = 20 #101 #201		# num grid X points
+ny = 20 #101 #201		# num grid Y points
+nt = 300 #201		# number of time steps in sim
 nit = 100	# pseudo-time iteration steps per time step (Poisson eq) - MUST BE EVEN
-dt = .002 #0.01
+dt = .01 #.002 #0.01
 dx = 2.0 / (nx-1.0)
 dy = 2.0 / (ny-1.0)
 
@@ -138,9 +146,12 @@ def data_gen ():
 					pn[yi][xi] = (1.0/(2.0*(dx*dx+dy*dy))) * (dy*dy*(po[yi][xi+1]+po[yi][xi-1]) + dx*dx*(po[yi+1][xi]+po[yi-1][xi]) - dx*dx*dy*dy*B[yi][xi])
 
 			# enforce BCs: dp/dy = 0 @ y = 0, dp/dx = 0 @ x = 0,2
-			for xi in xrange(1,nx-1):
+			#for xi in xrange(1,nx-1):
+			for xi in xrange(nx):
 				pn[0][xi] = pn[1][xi]
-			for yi in xrange(1,ny-1):
+				pn[ny-1][xi] = pn[ny-2][xi]		# this is not actually in the BC specs
+			#for yi in xrange(1,ny-1):
+			for yi in xrange(ny):
 				pn[yi][0] = pn[yi][1]
 				pn[yi][nx-1] = pn[yi][nx-2]
 
@@ -153,8 +164,8 @@ def data_gen ():
 		pn = P1
 
 		# do one step in N-S for u and v using new pressure
-		for it in xrange(nit):
-			for yi in xrange(1,ny-1):
+		for yi in xrange(1,ny-1):
+			for xi in xrange(1,nx-1):
 				un[yi][xi] = uo[yi][xi] - \
 								(dt/dx)*uo[yi][xi]*(uo[yi][xi]-uo[yi][xi-1]) - (dt/dy)*vo[yi][xi]*(uo[yi][xi]-uo[yi-1][xi]) - \
 								(dt/(2.0*rho*dx))*(pn[yi][xi+1]-pn[yi][xi-1]) + \
@@ -178,11 +189,12 @@ def run (data):
 	if ping1to2:
 		im1.set_array(U2)
 		im2.set_array(V2)
-		im3.set_array(P2)
 	else:
 		im1.set_array(U1)
 		im2.set_array(V1)
-		im3.set_array(P1)
+
+	# P1 is always the newest pressure grid
+	im3.set_array(P1)
 	#p1.set_title("P - %d" % ct)
 
 	# save the current figure out as a frame for our movie
@@ -193,6 +205,11 @@ def run (data):
 
 	ping1to2 = not ping1to2
 
+
+# delete frmDir if it exists and create it again
+if os.path.exists(frmDir):
+    shutil.rmtree(frmDir)
+os.makedirs(frmDir)
 
 ani = animation.FuncAnimation(fig, run, data_gen, blit=False, interval=1, repeat=False, init_func=init)
 

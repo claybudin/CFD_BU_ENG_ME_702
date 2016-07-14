@@ -39,6 +39,11 @@ import matplotlib as matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+import os
+import shutil
+
+
+
 # graphing vars
 fig = plt.figure(figsize=(18.0,6.0), subplotpars=matplotlib.figure.SubplotParams(left=.05,right=.95))
 p1 = fig.add_subplot(131);
@@ -49,6 +54,8 @@ p3 = fig.add_subplot(133);
 p3.set_title("P")
 
 
+# frame dir for movie
+frmDir = "tmp1"
 
 # physical constants
 rho = 1.0		# fluid density
@@ -57,7 +64,7 @@ nu = 0.1		# fluid viscosity
 # simulation constants
 nx = 20		# num grid X points
 ny = 20		# num grid Y points
-nt = 100		# number of time steps in sim
+nt = 300		# number of time steps in sim
 nit = 100	# pseudo-time iteration steps per time step (Poisson eq) - MUST BE EVEN
 dt = 0.01
 dx = 2.0 / (nx-1.0)
@@ -214,11 +221,16 @@ def run (data):
 	# save the current figure out as a frame for our movie
 	# can build movie on command line with:
 	#	ffmpeg -i tmp3/frm%04d.png -r 15 -vcodec mpeg4 -y step10.mp4
-	fig.savefig("tmp1/frm%04d.png" % ct, dpi='figure')
+	fig.savefig(frmDir + "/frm%04d.png" % ct, dpi='figure')
 	print "Frame " + str(ct)
 
 	ping1to2 = not ping1to2
 
+
+# delete frmDir if it exists and create it again
+if os.path.exists(frmDir):
+    shutil.rmtree(frmDir)
+os.makedirs(frmDir)
 
 ani = animation.FuncAnimation(fig, run, data_gen, blit=False, interval=1, repeat=False, init_func=init)
 
