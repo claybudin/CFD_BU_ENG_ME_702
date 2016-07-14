@@ -60,14 +60,14 @@ frmDir = "tmp1"
 
 # physical constants
 rho = 1.0		# fluid density
-nu = .02 #0.0025 #0.01		# fluid viscosity - scales as 1/dx
+nu = .04 #0.0025 #0.01		# fluid viscosity - scales as 1/dx
 
 # simulation constants
-nx = 101 #201		# num grid X points
-ny = 101 #201		# num grid Y points
-nt = 600 #201		# number of time steps in sim
-nit = 100	# pseudo-time iteration steps per time step (Poisson eq) - MUST BE EVEN - this should probably scale with dx
-dt = .002 #.002 #0.01   # time step - scales as 1/dx
+nx = 51 #201		# num grid X points
+ny = 51 #201		# num grid Y points
+nt = 300 #201		# number of time steps in sim
+nit = 250 #100	# pseudo-time iteration steps per time step (Poisson eq) - MUST BE EVEN - this should probably scale with dx
+dt = .004 #.002 #0.01   # time step - scales as 1/dx
 dx = 2.0 / (nx-1.0)
 dy = 2.0 / (ny-1.0)
 
