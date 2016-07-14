@@ -5,7 +5,7 @@ Created on Thu Jul  7 16:05:12 2016
 @author: clay_budin
 
 Step 12: Navier-Stokes Equation - Channel Flow
-	du/dt + u*du/dx + v*du/dy = -(1/rho)*dp/dx + nu*(d^2u/dx^2 + d^2u/dy^2)
+	du/dt + u*du/dx + v*du/dy = -(1/rho)*dp/dx + nu*(d^2u/dx^2 + d^2u/dy^2) + F
 	dv/dt + u*dv/dx + v*dv/dy = -(1/rho)*dp/dy + nu*(d^2v/dx^2 + d^2v/dy^2)
 	d^2p/dx^2 + d^2p/dy^2 = -rho*((du/dx)^2+2*(du/dy*dv/dx)+(dv/dy)^2) + rho*d/dt(du/dx+dv/dy)
 
@@ -14,7 +14,7 @@ p is the pressure
 rho is the density - constant
 nu is the viscosity - constant
 
-Add force F = 1 to u equation - how? where?
+Add force F = 1 to u equation
 
 The first 2 eqs are N-S, the 3rd is a Poisson eq on the pressure p to enforce div(velocity) = 0 (incompressible flow)
 Proceed by alternately solving Poisson eq for p and N-S eqs for u and v
@@ -33,6 +33,11 @@ Domain: [0,2] x [0,2]
 Range:
 Initial Conditions: u,v,p = 0 everywhere
 Boundary Conditions: u,v,p periodic at x = 0,2; u,v = 0 @ y = 0,2; dp/dy = 0 @ y = 0,2
+
+
+Plot U and V as quiver:
+fig = pyplot.figure(figsize = (11,7), dpi=100)
+plt.quiver(X,Y,U1,V1)
 
 """
 
@@ -63,6 +68,7 @@ frmDir = "tmp1"
 # physical constants
 rho = 1.0		# fluid density
 nu = .04 #0.0025 #0.01		# fluid viscosity - scales as 1/dx
+Fu = 1	# force term on U
 
 # simulation constants
 nx = 51 #201		# num grid X points
@@ -177,7 +183,7 @@ def data_gen ():
 			if (xip1 >= nx): xip1 = 0
 
 			for yi in xrange(1,ny-1):
-				un[yi][xi] = dt + uo[yi][xi] - \
+				un[yi][xi] = Fu*dt + uo[yi][xi] - \
 								(dt/dx)*uo[yi][xi]*(uo[yi][xi]-uo[yi][xim1]) - (dt/dy)*vo[yi][xi]*(uo[yi][xi]-uo[yi-1][xi]) - \
 								(dt/(2.0*rho*dx))*(pn[yi][xip1]-pn[yi][xim1]) + \
 								nu*dt*((uo[yi][xip1]-2*uo[yi][xi]+uo[yi][xim1])/(dx*dx) + (uo[yi+1][xi]-2*uo[yi][xi]+uo[yi-1][xi])/(dy*dy))

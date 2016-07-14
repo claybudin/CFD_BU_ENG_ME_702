@@ -65,7 +65,7 @@ nu = .04 #0.0025 #0.01		# fluid viscosity - scales as 1/dx
 # simulation constants
 nx = 51 #201		# num grid X points
 ny = 51 #201		# num grid Y points
-nt = 300 #201		# number of time steps in sim
+nt = 10 #300 #201		# number of time steps in sim
 nit = 250 #100	# pseudo-time iteration steps per time step (Poisson eq) - MUST BE EVEN - this should probably scale with dx
 dt = .004 #.002 #0.01   # time step - scales as 1/dx
 dx = 2.0 / (nx-1.0)
