@@ -17,7 +17,7 @@ Lax-Friedrichs - FD in time, CD in space using avg for u(n,i)
 Lax-Wendroff - FD in time, CD in space
 	u(n+1,i) = u(n,i) - sigma/2*(u(n,i+1)-u(n,i-1)) + sigma^2/2*(u(n,i+1)-2*u(n,i)+u(n,i-1))
 	adds second derivive term for more accuracy
-	Lax-Wendroff applies specifically to Convection, since it uses a substitution based on convection eq (?)
+	I think Lax-Wendroff applies specifically to Convection, since it uses a substitution based on convection eq (?)
 Richtmyer/Lax-Wendroff - multi-step (Predictor-Corrector)
 	Variant 1: Step 1 - Lax-Friedrich to time n+1/2, Step 2 - Leap frog using values from Step 1
 		Step 1:  u(n+1/2, i) = 1/2*(u(n,i+1)+u(n,i-1)) - c*dt/(4*dx)*(u(n,i+1)-u(n,i-1))

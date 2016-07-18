@@ -34,6 +34,7 @@ ax.set_ylim(-.1, 1.1)
 line_bd, = ax.plot([], [], 'b', lw=1)
 line_fd, = ax.plot([], [], 'r', lw=1)
 line_lf, = ax.plot([], [], 'g', lw=1)
+line_lw, = ax.plot([], [], 'y', lw=1)
 
 
 
@@ -49,6 +50,7 @@ xdata = []
 ydbd = []
 ydfd = []
 ydlf = []
+ydlw = []
 
 
 # global var - current time step
@@ -64,6 +66,7 @@ def init ():
 	del ydbd[:]
 	del ydfd[:]
 	del ydlf[:]
+	del ydlw[:]
 
 	for i in range(nx):
 		x = i*dx
@@ -75,10 +78,12 @@ def init ():
 		ydbd.append(y)
 		ydfd.append(y)
 		ydlf.append(y)
+		ydlw.append(y)
 
 	line_bd.set_data(xdata, ydbd)
 	line_fd.set_data(xdata, ydfd)
 	line_lf.set_data(xdata, ydlf)
+	line_lw.set_data(xdata, ydlw)
 
 
 
@@ -100,10 +105,23 @@ def data_gen ():
 #		for i in range(1,nx-1):
 #			ydfd[i] = ypfd[i] - (ypfd[i]*dt/dx)*(ypfd[i+1]-ypfd[i])
 
-		# Lax-Friedrichs u(n+1,i) = 1/2*(u(n,i+1)+u(n,i-1)) - u(n,i)*dt/(2*dx) * (u(n,i+1)-u(n,i-1))
+		# Lax-Friedrichs: u(n+1,i) = 1/2*(u(n,i+1)+u(n,i-1)) - u(n,i)*dt/(2*dx) * (u(n,i+1)-u(n,i-1))
 		yplf = ydlf[:]
 		for i in range(1,nx-1):
 			ydlf[i] = .5*(yplf[i+1]+yplf[i-1]) - (yplf[i]*dt/(2*dx))*(yplf[i+1]-yplf[i-1])
+
+
+		# Lax-Wendroff: u(n+1,i) = u(n,i) - sigma/2*(u(n,i+1)-u(n,i-1)) + sigma^2/2*(u(n,i+1)-2*u(n,i)+u(n,i-1))
+		# do I need to re-do derivations because substitution of d/dx for d/dt has changed?
+		yplw = ydlw[:]
+		for i in range(1,nx-1):
+			# this does LW same as linear case, just substituting u for c
+			# doesn't move at all
+			#ydlw[i] = yplw[i] - (yplw[i]*dt/(2*dx))*(yplw[i+1]-yplw[i-1]) + (yplw[i]*dt/dx)*(yplw[i]*dt/dx)/2*(yplw[i+1]-2*yplw[i]+yplw[i-1])
+			# rederived LW from Taylor series using u*du/dx instead of c*du/dx
+			# doesn't move either
+			ydlw[i] = yplw[i] - (yplw[i]*dt/(2*dx))*(yplw[i+1]-yplw[i-1]) + \
+					  (dt/dx)*(dt/dx)/2*((yplw[i]*yplw[i]*(yplw[i+1]-2*yplw[i]+yplw[i-1])) + .5*yplw[i]*(yplw[i+1]-yplw[i-1]))
 
 		yield
 
@@ -113,6 +131,7 @@ def run (data):
 	line_bd.set_ydata(ydbd)
 	#line_fd.set_ydata(ydfd)
 	line_lf.set_ydata(ydlf)
+	line_lw.set_ydata(ydlw)
 
 
 ani = animation.FuncAnimation(fig, run, data_gen, blit=False, interval=10, repeat=True, init_func=init)
