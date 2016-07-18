@@ -10,9 +10,25 @@ linear because c is constant
 
 Schemes:
 Upwind - Forward diff in time, Backward diff in space
-Leapfrog - Centered diff in time, u(n+1,i) = u(n-1,i) - c*dt/dx * (u(n,i+1)-u(n,i-1)) - centered diff using point from 2 time steps back
-Lax-Friedrichs - FD in time, u(n+1,i) = 1/2*(u(n,i+1)+u(n,i-1)) - c*dt/(2*dx) * (u(n,i+1)-u(n,i-1)) - centered diff using avg for u(n,i)
-Lax-Wendroff - FD in time, u(n+1,i) = u(n,i) - sigma/2*(u(n,i+1)-u(n,i-1)) + sigma^2/2*(u(n,i+1)-2*u(n,i)+u(n,i-1)) - adds second derivive term for more accuracy
+Leapfrog - Centered diff in time, CD in space
+	u(n+1,i) = u(n-1,i) - c*dt/dx * (u(n,i+1)-u(n,i-1)) - centered diff using point from 2 time steps back
+Lax-Friedrichs - FD in time, CD in space using avg for u(n,i)
+	u(n+1,i) = 1/2*(u(n,i+1)+u(n,i-1)) - c*dt/(2*dx) * (u(n,i+1)-u(n,i-1))
+Lax-Wendroff - FD in time, CD in space
+	u(n+1,i) = u(n,i) - sigma/2*(u(n,i+1)-u(n,i-1)) + sigma^2/2*(u(n,i+1)-2*u(n,i)+u(n,i-1))
+	adds second derivive term for more accuracy
+	Lax-Wendroff applies specifically to Convection, since it uses a substitution based on convection eq (?)
+Richtmyer/Lax-Wendroff - multi-step (Predictor-Corrector)
+	Variant 1: Step 1 - Lax-Friedrich to time n+1/2, Step 2 - Leap frog using values from Step 1
+		Step 1:  u(n+1/2, i) = 1/2*(u(n,i+1)+u(n,i-1)) - c*dt/(4*dx)*(u(n,i+1)-u(n,i-1))
+		Step 2:  u(n+1,i) = u(n,i) - c*dt/(2*dx)*(u(n+1/2, i+1) - u(n+1/2, i-1))
+	Variant 2: Step 1 - Lax-Friedrich to time n+1/2 and space i+1/2, Step 2 - Leap frog using values from Step 1
+		Step 1:  u(n+1/2, i+1/2) = 1/2*(u(n,i+1)+u(n,i)) - c*dt/(2*dx)*(u(n,i+1)-u(n,i))
+		Step 2:  u(n+1,i) = u(n,i) - c*dt/dx*(u(n+1/2, i+1/2) - u(n+1/2, i-1/2))
+MacCormack - multi-step - creates intermediate values u*(x)
+	Step 1 - FD: u*(i) = u(n,i) - c*dt/dx*(u(n,i+1)-u(n,i))
+	Step 2 - BD: u(n+1,i) = .5*(u(n,i)+u*(i) - c*dt/dx*(u*(i)-u*(i-1)))
+	Can also alternate FD and BD in alternate steps
 
 Domain: [0,2]
 Range: [0,1]
@@ -42,6 +58,10 @@ line_uw, = ax.plot([], [], "b", lw=1)
 line_lf, = ax.plot([], [], "r", lw=1)
 line_lxfr, = ax.plot([], [], "g", lw=1)
 line_lw, = ax.plot([], [], "c", lw=1)
+line_rlw1, = ax.plot([], [], "y", lw=1)
+line_rlw2, = ax.plot([], [], "m", lw=1)
+line_mc1, = ax.plot([], [], "y", lw=1)
+line_mc2, = ax.plot([], [], "b", lw=1)
 
 
 
@@ -58,6 +78,10 @@ yduw = []				# upwind scheme - backwards difference
 ydlf, yplf = [], []		# leapfrog scheme - save previous data since we need u(t-2)
 ydlxfr = []
 ydlw = []
+ydrlw1 = []
+ydrlw2 = []
+ydmc1 = []
+ydmc2 = []
 
 
 # global var - current time step
@@ -74,6 +98,10 @@ def init ():
 	del yplf[:]
 	del ydlxfr[:]
 	del ydlw[:]
+	del ydrlw1[:]
+	del ydrlw2[:]
+	del ydmc1[:]
+	del ydmc2[:]
 
 	for i in range(nx):
 		x = i*dx
@@ -88,18 +116,26 @@ def init ():
 		yplf.append(y)
 		ydlxfr.append(y)
 		ydlw.append(y)
+		ydrlw1.append(y)
+		ydrlw2.append(y)
+		ydmc1.append(y)
+		ydmc2.append(y)
 
 	line_uw.set_data(xdata, yduw)
 	line_lf.set_data(xdata, ydlf)
 	line_lxfr.set_data(xdata, ydlxfr)
 	line_lw.set_data(xdata, ydlw)
+	line_rlw1.set_data(xdata, ydrlw1)
+	line_rlw2.set_data(xdata, ydrlw2)
+	line_mc1.set_data(xdata, ydmc1)
+	line_mc2.set_data(xdata, ydmc2)
 
 
 
 
 def data_gen ():
 	global ct
-	while ct <= nt:
+	while ct < nt:
 		#print "data_gen() ct =", ct
 		ct += 1
 
@@ -148,6 +184,55 @@ def data_gen ():
 			ydlw[i] = yplw[i] - (c*dt/(2*dx))*(yplw[i+1]-yplw[i-1]) + (c*dt/dx)*(c*dt/dx)*.5*(yplw[i+1]-2*yplw[i]+yplw[i-1])
 
 
+		# Richtmyer/Lax-Wendroff variant 1
+		# seems less accurate than just Lax-Wendroff
+		# step 1
+		yhrlw1 = []
+		yhrlw1.append(ydrlw1[0])
+		for i in range(1,nx-1):
+			yhrlw1.append(.5*(ydrlw1[i+1]+ydrlw1[i-1]) - (c*dt/(4*dx))*(ydrlw1[i+1]-ydrlw1[i-1]))
+		yhrlw1.append(ydrlw1[nx-1])
+		# step 2
+		# can just reuse ydrlw1 since we only need to reference point at i from previous time
+		for i in range(1,nx-1):
+			ydrlw1[i] = ydrlw1[i] - (c*dt/(2*dx))*(yhrlw1[i+1]-yhrlw1[i-1])
+
+		# Richtmyer/Lax-Wendroff variant 2
+		# seems identical to Lax-Wendroff - true for linear PDEs
+		# step 1
+		yhrlw2 = []
+		for i in range(nx-1):	# yhrlw2[i] hold values for i+1/2, need to compute yhrlw2[0]
+			yhrlw2.append(.5*(ydrlw2[i+1]+ydrlw2[i]) - (c*dt/(2*dx))*(ydrlw2[i+1]-ydrlw2[i]))
+		# step 2
+		for i in range(1,nx-1):
+			ydrlw2[i] = ydrlw2[i] - (c*dt/dx)*(yhrlw2[i]-yhrlw2[i-1])
+
+		# MacCormack
+		# also equivalent to Lax-Wendoff for linear PDEs
+		# step 1
+		ymcus1 = []
+		for i in range(nx-1):	# compute u*(0)
+			ymcus1.append(ydmc1[i] - (c*dt/dx)*(ydmc1[i+1]-ydmc1[i]))
+		# step 2
+		for i in range(1,nx-1):
+			ydmc1[i] = .5*(ydmc1[i] + ymcus1[i] - (c*dt/dx)*(ymcus1[i]-ymcus1[i-1]))
+
+		# MacCormack variation - alternate order of FD and BD in steps on alternate iterations
+		# also equivalent to Lax-Wendoff for linear PDEs
+		ymcus2 = []
+		if ct % 2 == 1:
+			for i in range(nx-1):	# compute u*(0)
+				ymcus2.append(ydmc2[i] - (c*dt/dx)*(ydmc2[i+1]-ydmc2[i]))
+			for i in range(1,nx-1):
+				ydmc2[i] = .5*(ydmc2[i] + ymcus2[i] - (c*dt/dx)*(ymcus2[i]-ymcus2[i-1]))
+		else:
+			ymcus2.append(0)			# fill u*(0) with dummy value - not used
+			for i in range(1,nx):	# compute u*(nx-1)
+				ymcus2.append(ydmc2[i] - (c*dt/dx)*(ydmc2[i]-ydmc2[i-1]))
+			for i in range(1,nx-1):
+				ydmc2[i] = .5*(ydmc2[i] + ymcus2[i] - (c*dt/dx)*(ymcus2[i+1]-ymcus2[i]))
+
+
 		# don't need to enfore BC since leftmost element of ydata arrays not touched by iterations
 
 		yield
@@ -156,9 +241,13 @@ def data_gen ():
 def run (data):
 	#print "run()"
 	line_uw.set_ydata(yduw)
-	line_lf.set_ydata(ydlf)
-	line_lxfr.set_ydata(ydlxfr)
+	#line_lf.set_ydata(ydlf)
+	#line_lxfr.set_ydata(ydlxfr)
 	line_lw.set_ydata(ydlw)
+	#line_rlw1.set_ydata(ydrlw1)
+	line_rlw2.set_ydata(ydrlw2)
+	line_mc1.set_ydata(ydmc1)
+	line_mc2.set_ydata(ydmc2)
 
 
 
