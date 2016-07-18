@@ -12,6 +12,7 @@ Schemes:
 Upwind - Forward diff in time, Backward diff in space
 Leapfrog - Centered diff in time, u(n+1,i) = u(n-1,i) - c*dt/dx * (u(n,i+1)-u(n,i-1)) - centered diff using point from 2 time steps back
 Lax-Friedrichs - FD in time, u(n+1,i) = 1/2*(u(n,i+1)+u(n,i-1)) - c*dt/(2*dx) * (u(n,i+1)-u(n,i-1)) - centered diff using avg for u(n,i)
+Lax-Wendroff - FD in time, u(n+1,i) = u(n,i) - sigma/2*(u(n,i+1)-u(n,i-1)) + sigma^2/2*(u(n,i+1)-2*u(n,i)+u(n,i-1)) - adds second derivive term for more accuracy
 
 Domain: [0,2]
 Range: [0,1]
