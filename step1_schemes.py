@@ -34,13 +34,14 @@ import matplotlib.animation as animation
 # graphing vars
 fig, ax = plt.subplots()
 ax.grid()
+ax.set_xlim(-.1, 2.1)
+ax.set_ylim(-.1, 1.4)
+
 line_uw, = ax.plot([], [], "b", lw=1)
 line_lf, = ax.plot([], [], "r", lw=1)
 line_lxfr, = ax.plot([], [], "g", lw=1)
 line_lw, = ax.plot([], [], "c", lw=1)
 
-ax.set_xlim(-.1, 2.1)
-ax.set_ylim(-.1, 1.4)
 
 
 # simulation constants
@@ -101,6 +102,9 @@ def data_gen ():
 		#print "data_gen() ct =", ct
 		ct += 1
 
+		# for useful visual comparissons among these schemes, see:
+		#	http://www.thevisualroom.com/heavy_side_and_sinusoidal_input.html
+
 		# Upwind scheme (backwards diff)
 		# copy contents of yduw to ypuw
 		ypuw = []
@@ -114,7 +118,6 @@ def data_gen ():
 		# leapfrog scheme
 		# stable for sigma <= 1.0
 		# better than upwind on leading edge, but trailing edge has oscillations
-		# see: http://www.thevisualroom.com/heavy_side_and_sinusoidal_input.html#leapfrog-with
 		ypplf = []
 		ypplf[:] = yplf[:]
 		yplf[:] = ydlf[:]
