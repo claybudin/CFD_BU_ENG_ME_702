@@ -27,13 +27,15 @@ import matplotlib.animation as animation
 fig, ax = plt.subplots()
 ax.grid()
 ax.set_xlim(-.1, 4.1)
-ax.set_ylim(-.1, 1.1)
+ax.set_ylim(-.1, 1.5)
 
 
 # plots
 line_bd, = ax.plot([], [], 'b', lw=1)
-line_fd, = ax.plot([], [], 'r', lw=1)
-line_lf, = ax.plot([], [], 'g', lw=1)
+line_bdc, = ax.plot([], [], 'r', lw=1)
+line_fd, = ax.plot([], [], 'g', lw=1)
+line_lf, = ax.plot([], [], 'c', lw=1)
+line_lfc, = ax.plot([], [], 'm', lw=1)
 line_lw, = ax.plot([], [], 'y', lw=1)
 
 
@@ -48,8 +50,10 @@ dx = 4.0 / (nx-1)
 # simlation grids - 1D
 xdata = []
 ydbd = []
+ydbdc = []
 ydfd = []
 ydlf = []
+ydlfc = []
 ydlw = []
 
 
@@ -64,8 +68,10 @@ def init ():
 
 	del xdata[:]
 	del ydbd[:]
+	del ydbdc[:]
 	del ydfd[:]
 	del ydlf[:]
+	del ydlfc[:]
 	del ydlw[:]
 
 	for i in range(nx):
@@ -76,13 +82,17 @@ def init ():
 		if x <= 2.0: y = 1.0
 
 		ydbd.append(y)
+		ydbdc.append(y)
 		ydfd.append(y)
 		ydlf.append(y)
+		ydlfc.append(y)
 		ydlw.append(y)
 
 	line_bd.set_data(xdata, ydbd)
-	line_fd.set_data(xdata, ydfd)
+	line_bdc.set_data(xdata, ydbdc)
+	#line_fd.set_data(xdata, ydfd)
 	line_lf.set_data(xdata, ydlf)
+	line_lfc.set_data(xdata, ydlfc)
 	line_lw.set_data(xdata, ydlw)
 
 
@@ -99,20 +109,48 @@ def data_gen ():
 		for i in range(1,nx-1):
 			ydbd[i] = ypbd[i] - (ypbd[i]*dt/dx)*(ypbd[i]-ypbd[i-1])
 
+		# backwards difference scheme - conservative
+		# 	du/dt + df/dx = 0,  f = 1/2*u^2, df/dx = u*du/dx (by the chain rule)
+		# approximate df/dx with BD: (f(i)-f(i-1)) / dx, du/dt with FD and solve for u(n+1,i)
+		# this works - seems better than LF or LW for these ICs
+		ypbdc = ydbdc[:]
+		for i in range(1,nx-1):
+			ydbdc[i] = ypbdc[i] - (dt/(2*dx))*(ypbdc[i]*ypbdc[i]-ypbdc[i-1]*ypbdc[i-1])
+
 		# forwards difference scheme
 		# unstable
 #		ypfd = ydfd[:]
 #		for i in range(1,nx-1):
 #			ydfd[i] = ypfd[i] - (ypfd[i]*dt/dx)*(ypfd[i+1]-ypfd[i])
 
+		# see if FD works better using conservative formulation
+		# still unstable
+#		ypfd = ydfd[:]
+#		for i in range(1,nx-1):
+#			ydfd[i] = ypfd[i] - (dt/(2*dx))*(ypfd[i+1]*ypfd[i+1]-ypfd[i]*ypfd[i])
+
+		# try CD using conservative formulation
+		# still unstable
+#		ypfd = ydfd[:]
+#		for i in range(1,nx-1):
+#			ydfd[i] = ypfd[i] - (dt/(4*dx))*(ypfd[i+1]*ypfd[i+1]-ypfd[i-1]*ypfd[i-1])
+
+
+
 		# Lax-Friedrichs: u(n+1,i) = 1/2*(u(n,i+1)+u(n,i-1)) - u(n,i)*dt/(2*dx) * (u(n,i+1)-u(n,i-1))
+		# works, some diffusion
 		yplf = ydlf[:]
 		for i in range(1,nx-1):
 			ydlf[i] = .5*(yplf[i+1]+yplf[i-1]) - (yplf[i]*dt/(2*dx))*(yplf[i+1]-yplf[i-1])
 
+		# conservative version
+		yplfc = ydlfc[:]
+		for i in range(1,nx-1):
+			ydlfc[i] = .5*(yplfc[i+1]+yplfc[i-1]) - (dt/(4*dx))*(yplfc[i+1]*yplfc[i+1]-yplfc[i-1]*yplfc[i-1])
 
-		# Lax-Wendroff: u(n+1,i) = u(n,i) - sigma/2*(u(n,i+1)-u(n,i-1)) + sigma^2/2*(u(n,i+1)-2*u(n,i)+u(n,i-1))
-		# do I need to re-do derivations because substitution of d/dx for d/dt has changed?
+
+		# Lax-Wendroff
+		# works using conservative formulation - some trailing oscillations
 		yplw = ydlw[:]
 		for i in range(1,nx-1):
 			# this does LW same as linear case, just substituting u for c
@@ -120,17 +158,28 @@ def data_gen ():
 			#ydlw[i] = yplw[i] - (yplw[i]*dt/(2*dx))*(yplw[i+1]-yplw[i-1]) + (yplw[i]*dt/dx)*(yplw[i]*dt/dx)/2*(yplw[i+1]-2*yplw[i]+yplw[i-1])
 			# rederived LW from Taylor series using u*du/dx instead of c*du/dx
 			# doesn't move either
-			ydlw[i] = yplw[i] - (yplw[i]*dt/(2*dx))*(yplw[i+1]-yplw[i-1]) + \
-					  (dt/dx)*(dt/dx)/2*((yplw[i]*yplw[i]*(yplw[i+1]-2*yplw[i]+yplw[i-1])) + .5*yplw[i]*(yplw[i+1]-yplw[i-1]))
+			#ydlw[i] = yplw[i] - (yplw[i]*dt/(2*dx))*(yplw[i+1]-yplw[i-1]) + \
+			#		  (dt/dx)*(dt/dx)/2*((yplw[i]*yplw[i]*(yplw[i+1]-2*yplw[i]+yplw[i-1])) + .5*yplw[i]*(yplw[i+1]-yplw[i-1])*(yplw[i+1]-yplw[i-1]))
 
+			# the standard derivation seems to use the conservative form
+			# from several sources, eg:
+			# http://www.bcamath.org/projects/NUMERIWAVES/Burgers_Equation_M_Landajuela.pdf
+			# https://people.sc.fsu.edu/~jburkardt/m_src/fd1d_burgers_lax/fd1d_burgers_lax.m
+			# note that PDF file lists first term on RHS as u(n,i+1) which fails, while MatLab program lists it as u(n,i) which works
+			# this appears to be confirmed in http://www.mat.univie.ac.at/~obertsch/literatur/burgers_equation.pdf
+			ydlw[i] = yplw[i] - dt/(4*dx)*(yplw[i+1]*yplw[i+1]-yplw[i-1]*yplw[i-1]) + \
+						dt*dt/(8*dx*dx)*((yplw[i]+yplw[i+1])*(yplw[i+1]*yplw[i+1]-yplw[i]*yplw[i]) - \
+										(yplw[i]+yplw[i-1])*(yplw[i]*yplw[i]-yplw[i-1]*yplw[i-1]))
 		yield
 
 
 def run (data):
 	#print "run()"
 	line_bd.set_ydata(ydbd)
+	line_bdc.set_ydata(ydbdc)
 	#line_fd.set_ydata(ydfd)
 	line_lf.set_ydata(ydlf)
+	line_lfc.set_ydata(ydlfc)
 	line_lw.set_ydata(ydlw)
 
 
