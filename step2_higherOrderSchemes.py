@@ -37,6 +37,7 @@ line_fd, = ax.plot([], [], 'g', lw=1)
 line_lf, = ax.plot([], [], 'c', lw=1)
 line_lfc, = ax.plot([], [], 'm', lw=1)
 line_lw, = ax.plot([], [], 'y', lw=1)
+line_mc, = ax.plot([], [], 'g', lw=1)
 
 
 
@@ -55,6 +56,7 @@ ydfd = []
 ydlf = []
 ydlfc = []
 ydlw = []
+ydmc = []
 
 
 # global var - current time step
@@ -73,6 +75,7 @@ def init ():
 	del ydlf[:]
 	del ydlfc[:]
 	del ydlw[:]
+	del ydmc[:]
 
 	for i in range(nx):
 		x = i*dx
@@ -87,6 +90,7 @@ def init ():
 		ydlf.append(y)
 		ydlfc.append(y)
 		ydlw.append(y)
+		ydmc.append(y)
 
 	line_bd.set_data(xdata, ydbd)
 	line_bdc.set_data(xdata, ydbdc)
@@ -94,6 +98,7 @@ def init ():
 	line_lf.set_data(xdata, ydlf)
 	line_lfc.set_data(xdata, ydlfc)
 	line_lw.set_data(xdata, ydlw)
+	line_mc.set_data(xdata, ydmc)
 
 
 
@@ -153,14 +158,6 @@ def data_gen ():
 		# works using conservative formulation - some trailing oscillations
 		yplw = ydlw[:]
 		for i in range(1,nx-1):
-			# this does LW same as linear case, just substituting u for c
-			# doesn't move at all
-			#ydlw[i] = yplw[i] - (yplw[i]*dt/(2*dx))*(yplw[i+1]-yplw[i-1]) + (yplw[i]*dt/dx)*(yplw[i]*dt/dx)/2*(yplw[i+1]-2*yplw[i]+yplw[i-1])
-			# rederived LW from Taylor series using u*du/dx instead of c*du/dx
-			# doesn't move either
-			#ydlw[i] = yplw[i] - (yplw[i]*dt/(2*dx))*(yplw[i+1]-yplw[i-1]) + \
-			#		  (dt/dx)*(dt/dx)/2*((yplw[i]*yplw[i]*(yplw[i+1]-2*yplw[i]+yplw[i-1])) + .5*yplw[i]*(yplw[i+1]-yplw[i-1])*(yplw[i+1]-yplw[i-1]))
-
 			# the standard derivation seems to use the conservative form
 			# from several sources, eg:
 			# http://www.bcamath.org/projects/NUMERIWAVES/Burgers_Equation_M_Landajuela.pdf
@@ -170,6 +167,16 @@ def data_gen ():
 			ydlw[i] = yplw[i] - dt/(4*dx)*(yplw[i+1]*yplw[i+1]-yplw[i-1]*yplw[i-1]) + \
 						dt*dt/(8*dx*dx)*((yplw[i]+yplw[i+1])*(yplw[i+1]*yplw[i+1]-yplw[i]*yplw[i]) - \
 										(yplw[i]+yplw[i-1])*(yplw[i]*yplw[i]-yplw[i-1]*yplw[i-1]))
+
+
+		# MacCormack - from lbarba's notes in "assignmentBurger.pdf"
+		yusmc = ydmc[:]
+		for i in range(1,nx-1):
+			yusmc[i] = ydmc[i] - dt/(2*dx)*(ydmc[i+1]*ydmc[i+1]-ydmc[i]*ydmc[i])
+		for i in range(1,nx-1):
+			ydmc[i] = .5*(ydmc[i]+yusmc[i]-dt/(2*dx)*(yusmc[i]*yusmc[i]-yusmc[i-1]*yusmc[i-1]))
+
+
 		yield
 
 
@@ -181,6 +188,7 @@ def run (data):
 	line_lf.set_ydata(ydlf)
 	line_lfc.set_ydata(ydlfc)
 	line_lw.set_ydata(ydlw)
+	line_mc.set_ydata(ydmc)
 
 
 ani = animation.FuncAnimation(fig, run, data_gen, blit=False, interval=10, repeat=True, init_func=init)
