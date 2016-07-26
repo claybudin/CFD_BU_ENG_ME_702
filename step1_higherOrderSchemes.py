@@ -29,6 +29,7 @@ MacCormack - multi-step - creates intermediate values u*(x)
 	Step 1 - FD: u*(i) = u(n,i) - c*dt/dx*(u(n,i+1)-u(n,i))
 	Step 2 - BD: u(n+1,i) = .5*(u(n,i)+u*(i) - c*dt/dx*(u*(i)-u*(i-1)))
 	Can also alternate FD and BD in alternate steps
+Beam-Warming - 2nd order BD, gets u(n+1,i) using u(n,i), u(n,i-1) and u(n,i-2)
 
 Domain: [0,2]
 Range: [0,1]
@@ -61,7 +62,8 @@ line_lw, = ax.plot([], [], "c", lw=1)
 line_rlw1, = ax.plot([], [], "y", lw=1)
 line_rlw2, = ax.plot([], [], "m", lw=1)
 line_mc1, = ax.plot([], [], "y", lw=1)
-line_mc2, = ax.plot([], [], "b", lw=1)
+line_mc2, = ax.plot([], [], "g", lw=1)
+line_bw, = ax.plot([], [], "r", lw=1)
 
 
 
@@ -82,6 +84,7 @@ ydrlw1 = []
 ydrlw2 = []
 ydmc1 = []
 ydmc2 = []
+ydbw = []
 
 
 # global var - current time step
@@ -102,6 +105,7 @@ def init ():
 	del ydrlw2[:]
 	del ydmc1[:]
 	del ydmc2[:]
+	del ydbw[:]
 
 	for i in range(nx):
 		x = i*dx
@@ -110,6 +114,7 @@ def init ():
 
 		# IC u(0) = 1
 		if i == 0: y = 1.0
+		if i == 1: y = 1.0		# need this for Beam-Warming scheme since it starts at u[2]
 
 		yduw.append(y)
 		ydlf.append(y)
@@ -120,6 +125,7 @@ def init ():
 		ydrlw2.append(y)
 		ydmc1.append(y)
 		ydmc2.append(y)
+		ydbw.append(y)
 
 	line_uw.set_data(xdata, yduw)
 	line_lf.set_data(xdata, ydlf)
@@ -129,6 +135,7 @@ def init ():
 	line_rlw2.set_data(xdata, ydrlw2)
 	line_mc1.set_data(xdata, ydmc1)
 	line_mc2.set_data(xdata, ydmc2)
+	line_bw.set_data(xdata, ydbw)
 
 
 
@@ -233,6 +240,12 @@ def data_gen ():
 				ydmc2[i] = .5*(ydmc2[i] + ymcus2[i] - (c*dt/dx)*(ymcus2[i+1]-ymcus2[i]))
 
 
+		# Beam-Warming - similar to LW but uses 2nd order BDs
+		# oscillations lead rather than trail
+		ypbw = ydbw[:]
+		for i in range(2,nx):
+			ydbw[i] = ypbw[i] - (c*dt/(2*dx))*(3*ypbw[i]-4*ypbw[i-1]+ypbw[i-2]) + (c*dt/dx)*(c*dt/dx)*.5*(ypbw[i]-2*ypbw[i-1]+ypbw[i-2])
+
 		# don't need to enfore BC since leftmost element of ydata arrays not touched by iterations
 
 		yield
@@ -248,6 +261,7 @@ def run (data):
 	line_rlw2.set_ydata(ydrlw2)
 	line_mc1.set_ydata(ydmc1)
 	line_mc2.set_ydata(ydmc2)
+	line_bw.set_ydata(ydbw)
 
 
 
