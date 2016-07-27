@@ -40,6 +40,7 @@ line_lw, = ax.plot([], [], 'y', lw=1)
 line_mc, = ax.plot([], [], 'g', lw=1)
 line_bw, = ax.plot([], [], 'b', lw=1)
 line_bw2, = ax.plot([], [], 'r', lw=1)
+line_bw3, = ax.plot([], [], 'g', lw=1)
 
 
 
@@ -61,6 +62,7 @@ ydlw = []
 ydmc = []
 ydbw = []
 ydbw2 = []
+ydbw3 = []
 
 
 # global var - current time step
@@ -82,11 +84,13 @@ def init ():
 	del ydmc[:]
 
 	# because of the tridiagonal solver, ydbw is no longer a simple array that can be deleted like the others
-	global ydbw, ydbw2
+	global ydbw, ydbw2, ydbw3
 	del ydbw
 	del ydbw2
+	del ydbw3
 	ydbw = []
 	ydbw2 = []
+	ydbw3 = []
 
 
 	for i in xrange(nx):
@@ -105,6 +109,7 @@ def init ():
 		ydmc.append(y)
 		ydbw.append(y)
 		ydbw2.append(y)
+		ydbw3.append(y)
 
 
 	line_bd.set_data(xdata, ydbd)
@@ -116,6 +121,7 @@ def init ():
 	line_mc.set_data(xdata, ydmc)
 	line_bw.set_data(xdata, ydbw)
 	line_bw2.set_data(xdata, ydbw2)
+	line_bw3.set_data(xdata, ydbw3)
 
 
 # https://gist.github.com/ofan666/1875903
@@ -235,7 +241,7 @@ def data_gen ():
 			d[i] = ydbw[i]		# second 2 terms are equal and opposite, so cancel (???)
 		ydbw = TDMAsolver(a,b,c,d)
 
-		# implicit Beam-Warming with damping - solve tri-diagonal matrix
+		# implicit Beam-Warming with explicit damping - solve tri-diagonal matrix
 		# set up arrays
 		global ydbw2
 		epsilon = .1		# damping factor
@@ -257,6 +263,25 @@ def data_gen ():
 
 		ydbw2 = TDMAsolver(a,b,c,d)
 
+		# implicit Beam-Warming with implicit damping - solve tri-diagonal matrix
+		# set up arrays
+		global ydbw3
+		epsilon = .1		# damping factor
+		a = np.zeros(nx)
+		b = np.ones(nx)
+		c = np.zeros(nx)
+		d = np.zeros(nx)
+		d[0] = ydbw3[0]
+		d[nx-1] = ydbw3[nx-1]
+		sig = dt/(4*dx)
+		for i in xrange(1,nx-1):
+			a[i] = -sig*ydbw3[i-1] - epsilon*ydbw3[i-1]
+			b[i] = 1.0 + epsilon*2*ydbw3[i]
+			c[i] = sig*ydbw3[i+1] - epsilon*ydbw3[i+1]
+			d[i] = ydbw3[i]		# second 2 terms are equal and opposite, so cancel (???)
+		ydbw3 = TDMAsolver(a,b,c,d)
+
+
 		yield
 
 
@@ -269,8 +294,9 @@ def run (data):
 #	line_lfc.set_ydata(ydlfc)
 #	line_lw.set_ydata(ydlw)
 #	line_mc.set_ydata(ydmc)
-	line_bw.set_ydata(ydbw)
+#	line_bw.set_ydata(ydbw)
 	line_bw2.set_ydata(ydbw2)
+	line_bw3.set_ydata(ydbw3)
 
 
 ani = animation.FuncAnimation(fig, run, data_gen, blit=False, interval=10, repeat=True, init_func=init)
