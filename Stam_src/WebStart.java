@@ -48,7 +48,7 @@ public class WebStart extends Applet
 {
 
     // frame dimensions (dxd pixels)
-    int d = 300;
+    int d = 400; //300;
 
     // solver variables
     int n = 100; //60;
@@ -83,7 +83,7 @@ public class WebStart extends Applet
     BufferedImage bi;
     Graphics2D big;
 
-    public void reset(){
+    public void reset ()  {
         // calculate cell deimensions
         dg   = d  / n;
         dg_2 = dg / 2;
@@ -91,8 +91,7 @@ public class WebStart extends Applet
         fs.setup(n, dt);
     }
 
-    public void init()
-    {
+    public void init ()  {
         addMouseMotionListener(this);
         addMouseListener(this);
         addKeyListener(this);
@@ -101,38 +100,30 @@ public class WebStart extends Applet
         big = bi.createGraphics();
     }
 
-    public void start()
-    {
-        if (artist == null)
-        {
+    public void start ()  {
+        if (artist == null)  {
             artist = new Thread(this);
             artist.start();
             reset();
         }
     }
 
-    public void stop(){ artist = null; }
+    public void stop () { artist = null; }
 
-    public void run()
-    {
-        while (artist != null)
-        {
-            try
-            {
+    public void run ()  {
+        while (artist != null)  {
+            try {
                 Thread.sleep(20);
-            }
-            catch (InterruptedException e)
-            {
+            } catch (InterruptedException e)  {
             }
             repaint();
         }
         artist = null;
     }
 
-    public void update(Graphics g){ paint(g); }
+    public void update (Graphics g) { paint(g); }
 
-    public void paint(Graphics g)
-    {
+    public void paint (Graphics g)  {
         Graphics2D g2 = (Graphics2D) g;
 
         // clear screen
@@ -143,18 +134,15 @@ public class WebStart extends Applet
         fs.velocitySolver();
         fs.densitySolver();
 
-        for (int i = 1; i <= n; i++)
-        {
+        for (int i = 1; i <= n; i++)  {
             // x position of current cell
             dx = (int)( (i - 0.5f) * dg );
-            for (int j = 1; j <= n; j++)
-            {
+            for (int j = 1; j <= n; j++)  {
                 // y position of current cell
                 dy = (int)( (j - 0.5f) * dg );
 
                 // draw density
-                if (fs.d[I(i, j)] > 0)
-                {
+                if (fs.d[I(i, j)] > 0)  {
                     c = (int) ( (1.0 - fs.d[I(i, j)]) * 255);
                     if (c < 0) c = 0;
                     big.setColor(new Color(c, c, c));
@@ -162,8 +150,7 @@ public class WebStart extends Applet
                 }
 
                 // draw velocity field
-                if (vkey && i % 5 == 1 && j % 5 == 1)
-                {
+                if (vkey && i % 5 == 1 && j % 5 == 1)  {
                     u = (int)( 50 * fs.u[I(i,j)] );
                     v = (int)( 50 * fs.v[I(i,j)] );
                     big.setColor(Color.red);
@@ -181,53 +168,43 @@ public class WebStart extends Applet
         g2.drawImage(bi, null, 0, 0);
     }
 
-    public void keyPressed(KeyEvent e)
-    {
+    public void keyPressed (KeyEvent e)  {
         // set flag for drawing velocity field
         if (e.getKeyChar() == 'v')
-        {
             vkey = !vkey;
-        }
-
+ 
         // reset solver
         if (e.getKeyChar() == 'r')
-        {
-            fs.reset();
-        }
-
+             fs.reset();
+ 
         // increase fluid grid size and reset applet
-        if (e.getKeyChar() == ']')
-        {
+        if (e.getKeyChar() == ']')  {
             if(n == d) return;
 
             // calculate next ideal grid size
             int i = n+1;
-            while(d%i != 0){
+            while (d%i != 0)
                 i++;
-            }
             n = i;
 
             reset();
         }
 
         // reduce fluid grid size and reset applet
-        if (e.getKeyChar() == '[')
-        {
+        if (e.getKeyChar() == '[')  {
             if(n < 10) return;
 
             // calculate previous ideal grid size
             int i = n-1;
-            while(d%i != 0){
+            while(d%i != 0)
                 i--;
-            }
             n = i;
 
             reset();
         }
 
         // increase timestep
-        if (e.getKeyChar() == '.')
-        {
+        if (e.getKeyChar() == '.')  {
             if(dt > 1) return;
 
             dt += 0.05f;
@@ -240,8 +217,7 @@ public class WebStart extends Applet
         }
 
         // reduce timestep
-        if (e.getKeyChar() == ',')
-        {
+        if (e.getKeyChar() == ',')  {
             if(dt < 0.1f) return;
 
             dt -= 0.05f;
@@ -254,8 +230,7 @@ public class WebStart extends Applet
         }
     }
 
-    public void mousePressed(MouseEvent e)
-    {
+    public void mousePressed (MouseEvent e)  {
         // save button event
         button = e.getButton();
 
@@ -268,8 +243,7 @@ public class WebStart extends Applet
         updateLocation(e);
     }
 
-    public void mouseDragged(MouseEvent e)
-    {
+    public void mouseDragged (MouseEvent e)  {
         // update mouse position
         xOld = x;
         yOld = y;
@@ -279,8 +253,7 @@ public class WebStart extends Applet
         updateLocation(e);
     }
 
-    public void updateLocation(MouseEvent e)
-    {
+    public void updateLocation (MouseEvent e)  {
         // get index for fluid cell under mouse position
         i = (int) ((x / (float) d) * n + 1);
         j = (int) ((y / (float) d) * n + 1);
@@ -293,24 +266,23 @@ public class WebStart extends Applet
 
         // add density or velocity
         if (button == 1) fs.dOld[I(i, j)] = 100;
-        if (button == 3 && e.getID() == MouseEvent.MOUSE_DRAGGED)
-        {
+        if (button == 3 && e.getID() == MouseEvent.MOUSE_DRAGGED)  {
             fs.uOld[I(i, j)] = (x - xOld) * 5;
             fs.vOld[I(i, j)] = (y - yOld) * 5;
         }
     }
 
     // util function for indexing
-    private int I(int i, int j){ return i + (n + 2) * j; }
+    private int I (int i, int j) { return i + (n + 2) * j; }
 
     // fulfill mouse interface requirements
-    public void mouseReleased(MouseEvent e){}
-    public void mouseMoved(MouseEvent e){}
-    public void mouseClicked(MouseEvent e){}
-    public void mouseExited(MouseEvent e){}
-    public void mouseEntered(MouseEvent e){}
+    public void mouseReleased (MouseEvent e) {}
+    public void mouseMoved (MouseEvent e) {}
+    public void mouseClicked (MouseEvent e) {}
+    public void mouseExited (MouseEvent e) {}
+    public void mouseEntered (MouseEvent e) {}
 
     // fulfill key interface requirements
-    public void keyTyped(KeyEvent e){}
-    public void keyReleased(KeyEvent e){}
+    public void keyTyped (KeyEvent e) {}
+    public void keyReleased (KeyEvent e) {}
 }

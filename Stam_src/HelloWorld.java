@@ -17,9 +17,6 @@ public class HelloWorld extends Applet {
 
       // Draws a square on the screen (x1=100, y1=100, x2=200,y2=200).
         g.drawRect(100, 100, 200, 200);
-
-
-
     }
 }
 

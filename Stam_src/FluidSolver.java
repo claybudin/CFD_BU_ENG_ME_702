@@ -13,8 +13,7 @@
  * @version 1.0
  **/
 
-public class FluidSolver
-{
+public class FluidSolver  {
     int n, size;
     float dt;
 
@@ -33,8 +32,7 @@ public class FluidSolver
      * Set the grid size and timestep.
      **/
 
-    public void setup(int n, float dt)
-    {
+    public void setup (int n, float dt)  {
         this.n = n;
         this.dt = dt;
         size = (n + 2) * (n + 2);
@@ -48,8 +46,7 @@ public class FluidSolver
      * We use 1d arrays for speed.
      **/
 
-    public void reset()
-    {
+    public void reset ()  {
         d    = new float[size];
         dOld = new float[size];
         u    = new float[size];
@@ -58,12 +55,10 @@ public class FluidSolver
         vOld = new float[size];
         curl = new float[size];
 
-        for (int i = 0; i < size; i++)
-        {
+        for (int i = 0; i < size; i++)  {
             u[i] = uOld[i] = v[i] = vOld[i] = 0.0f;
             d[i] = dOld[i] = curl[i] = 0.0f;
         }
-
     }
 
 
@@ -83,17 +78,14 @@ public class FluidSolver
      * @param Fbuoy Array to store buoyancy force for each cell.
      **/
 
-    public void buoyancy(float[] Fbuoy)
-    {
+    public void buoyancy (float[] Fbuoy)  {
         float Tamb = 0;
         float a = 0.000625f;
         float b = 0.025f;
 
         // sum all temperatures
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= n; j++)
-            {
+        for (int i = 1; i <= n; i++)  {
+            for (int j = 1; j <= n; j++)  {
                 Tamb += d[I(i, j)];
             }
         }
@@ -102,10 +94,8 @@ public class FluidSolver
         Tamb /= (n * n);
 
         // for each cell compute buoyancy force
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= n; j++)
-            {
+        for (int i = 1; i <= n; i++)  {
+            for (int j = 1; j <= n; j++)  {
                 Fbuoy[I(i, j)] = a * d[I(i, j)] + -b * (d[I(i, j)] - Tamb);
             }
         }
@@ -122,8 +112,7 @@ public class FluidSolver
      * @param j The y index of the cell.
      **/
 
-    public float curl(int i, int j)
-    {
+    public float curl (int i, int j)  {
         float du_dy = (u[I(i, j + 1)] - u[I(i, j - 1)]) * 0.5f;
         float dv_dx = (v[I(i + 1, j)] - v[I(i - 1, j)]) * 0.5f;
 
@@ -144,25 +133,20 @@ public class FluidSolver
      *        vorticity confinement force for each cell.
      **/
 
-    public void vorticityConfinement(float[] Fvc_x, float[] Fvc_y)
-    {
+    public void vorticityConfinement (float[] Fvc_x, float[] Fvc_y)  {
         float dw_dx, dw_dy;
         float length;
         float v;
 
         // Calculate magnitude of curl(u,v) for each cell. (|w|)
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= n; j++)
-            {
+        for (int i = 1; i <= n; i++)  {
+            for (int j = 1; j <= n; j++)  {
                 curl[I(i, j)] = Math.abs(curl(i, j));
             }
         }
 
-        for (int i = 2; i < n; i++)
-        {
-            for (int j = 2; j < n; j++)
-            {
+        for (int i = 2; i < n; i++)  {
+            for (int j = 2; j < n; j++)  {
 
                 // Find derivative of the magnitude (n = del |w|)
                 dw_dx = (curl[I(i + 1, j)] - curl[I(i - 1, j)]) * 0.5f;
@@ -191,8 +175,7 @@ public class FluidSolver
      * The basic velocity solving routine as described by Stam.
      **/
 
-    public void velocitySolver()
-    {
+    public void velocitySolver ()  {
 
         // add velocity that was input by mouse
         addSource(u, uOld);
@@ -229,7 +212,7 @@ public class FluidSolver
         project(u, v, uOld, vOld);
 
         // clear all input velocities for next frame
-        for (int i = 0; i < size; i++){ uOld[i] = 0; vOld[i] = 0; }
+        for (int i = 0; i < size; i++) { uOld[i] = 0; vOld[i] = 0; }
     }
 
 
@@ -237,8 +220,7 @@ public class FluidSolver
      * The basic density solving routine.
      **/
 
-    public void densitySolver()
-    {
+    public void densitySolver ()  {
         // add density inputted by mouse
         addSource(d, dOld);
         swapD();
@@ -253,12 +235,9 @@ public class FluidSolver
     }
 
 
-    private void addSource(float[] x, float[] x0)
-    {
+    private void addSource (float[] x, float[] x0)  {
         for (int i = 0; i < size; i++)
-        {
-            x[i] += dt * x0[i];
-        }
+             x[i] += dt * x0[i];
     }
 
 
@@ -277,17 +256,14 @@ public class FluidSolver
      * @param dv The y component of the velocity field.
      **/
 
-    private void advect(int b, float[] d, float[] d0, float[] du, float[] dv)
-    {
+    private void advect (int b, float[] d, float[] d0, float[] du, float[] dv)  {
         int i0, j0, i1, j1;
         float x, y, s0, t0, s1, t1, dt0;
 
         dt0 = dt * n;
 
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= n; j++)
-            {
+        for (int i = 1; i <= n; i++)  {
+            for (int j = 1; j <= n; j++)  {
                 // go backwards through velocity field
                 x = i - dt0 * du[I(i, j)];
                 y = j - dt0 * dv[I(i, j)];
@@ -336,8 +312,7 @@ public class FluidSolver
      * @param diff The factor of diffusion.
      **/
 
-    private void diffuse(int b, float[] c, float[] c0, float diff)
-    {
+    private void diffuse (int b, float[] c, float[] c0, float diff)  {
         float a = dt * diff * n * n;
         linearSolver(b, c, c0, a, 1 + 4 * a);
     }
@@ -363,12 +338,9 @@ public class FluidSolver
      *
      **/
 
-    void project(float[] x, float[] y, float[] p, float[] div)
-    {
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= n; j++)
-            {
+    void project (float[] x, float[] y, float[] p, float[] div)  {
+        for (int i = 1; i <= n; i++)  {
+            for (int j = 1; j <= n; j++)  {
                 div[I(i, j)] = (x[I(i+1, j)] - x[I(i-1, j)]
                               + y[I(i, j+1)] - y[I(i, j-1)])
                               * - 0.5f / n;
@@ -381,10 +353,8 @@ public class FluidSolver
 
         linearSolver(0, p, div, 1, 4);
 
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= n; j++)
-            {
+        for (int i = 1; i <= n; i++)  {
+            for (int j = 1; j <= n; j++)  {
                 x[I(i, j)] -= 0.5f * n * (p[I(i+1, j)] - p[I(i-1, j)]);
                 y[I(i, j)] -= 0.5f * n * (p[I(i, j+1)] - p[I(i, j-1)]);
             }
@@ -401,14 +371,10 @@ public class FluidSolver
      *
      **/
 
-    void linearSolver(int b, float[] x, float[] x0, float a, float c)
-    {
-        for (int k = 0; k < 20; k++)
-        {
-            for (int i = 1; i <= n; i++)
-            {
-                for (int j = 1; j <= n; j++)
-                {
+    void linearSolver (int b, float[] x, float[] x0, float a, float c)  {
+        for (int k = 0; k < 20; k++)  {
+            for (int i = 1; i <= n; i++)  {
+                for (int j = 1; j <= n; j++)  {
                     x[I(i, j)] = (a * ( x[I(i-1, j)] + x[I(i+1, j)]
                                     +   x[I(i, j-1)] + x[I(i, j+1)])
                                     +  x0[I(i, j)]) / c;
@@ -420,10 +386,8 @@ public class FluidSolver
 
 
     // specifies simple boundry conditions.
-    private void setBoundry(int b, float[] x)
-    {
-        for (int i = 1; i <= n; i++)
-        {
+    private void setBoundry (int b, float[] x)  {
+        for (int i = 1; i <= n; i++)  {
             x[I(  0, i  )] = b == 1 ? -x[I(1, i)] : x[I(1, i)];
             x[I(n+1, i  )] = b == 1 ? -x[I(n, i)] : x[I(n, i)];
             x[I(  i, 0  )] = b == 2 ? -x[I(i, 1)] : x[I(i, 1)];
@@ -438,10 +402,11 @@ public class FluidSolver
     }
 
     // util array swapping methods
-    public void swapU(){ tmp = u; u = uOld; uOld = tmp; }
-    public void swapV(){ tmp = v; v = vOld; vOld = tmp; }
-    public void swapD(){ tmp = d; d = dOld; dOld = tmp; }
+    public void swapU () { tmp = u; u = uOld; uOld = tmp; }
+    public void swapV () { tmp = v; v = vOld; vOld = tmp; }
+    public void swapD () { tmp = d; d = dOld; dOld = tmp; }
 
     // util method for indexing 1d arrays
-    private int I(int i, int j){ return i + (n + 2) * j; }
+    private int I (int i, int j) { return i + (n + 2) * j; }
 }
+
