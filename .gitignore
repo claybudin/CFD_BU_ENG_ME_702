@@ -7,5 +7,9 @@ tmp*/
 CFDPython-master/
 JSAnimation
 
+docs/
+*.class
+*.jar
+
 
 

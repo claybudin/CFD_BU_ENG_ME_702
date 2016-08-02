@@ -294,7 +294,7 @@ def run (data):
 #	line_lfc.set_ydata(ydlfc)
 #	line_lw.set_ydata(ydlw)
 #	line_mc.set_ydata(ydmc)
-#	line_bw.set_ydata(ydbw)
+	line_bw.set_ydata(ydbw)
 	line_bw2.set_ydata(ydbw2)
 	line_bw3.set_ydata(ydbw3)
 
