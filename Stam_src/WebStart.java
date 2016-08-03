@@ -21,7 +21,21 @@
 		As applet, doesn't need a main() routine
 		Seems like java applet gets cached, clearing in Java Control Panel doesn't help, have
 		  to restart Firefox
+        Can run an applet in its own window with:
+            appletviewer FluidSolver.html
+
+		Compile and run (OS X):
+	    javac [FW]*.java ; jar cvf FluidSolver.jar [FW]*.class ; appletviewer FluidSolver.html
+
+	    Can make custom Build System in Sublime Text 2:
+	    	{
+				"cmd": ["cd $file_path ; javac [FW]*.java ; jar cvf FluidSolver.jar [FW]*.class ; appletviewer FluidSolver.html"],
+				"shell": true
+			}
+
 */
+
+
 
 import java.applet.Applet;
 
