@@ -189,6 +189,11 @@ public class WebStart extends Applet
 	}
 
 	public void keyPressed (KeyEvent e)  {
+		// this doesn't work - throws exception
+		// applets aren't designed to ever exit since they run in a browser context
+		// if (e.getKeyChar() == 'q')
+		// 	System.exit(0);
+
 		// set flag for drawing velocity field
 		if (e.getKeyChar() == 'v')
 			vkey = !vkey;
