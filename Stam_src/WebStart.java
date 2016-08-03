@@ -27,7 +27,8 @@
 		Compile and run (OS X):
 	    javac [FW]*.java ; jar cvf FluidSolver.jar [FW]*.class ; appletviewer FluidSolver.html
 
-	    Can make custom Build System in Sublime Text 2:
+	    Can make custom Build System in Sublime Text 2
+	    ~/Library/Application Support/Sublime Text 2/Packages/User/FluidSolver.sublime-build
 	    	{
 				"cmd": ["cd $file_path ; javac [FW]*.java ; jar cvf FluidSolver.jar [FW]*.class ; appletviewer FluidSolver.html"],
 				"shell": true
@@ -62,11 +63,16 @@ public class WebStart extends Applet
 {
 
 	// frame dimensions (dxd pixels)
-	int d = 400; //300;
+	int d = 800; //400; //300;
 
 	// solver variables
 	int n = 100; //60;
 	float dt = 0.2f;
+
+	float velArrowScale = 250.0f;	// 50.0f
+
+
+	// make the solver
 	FluidSolver fs = new FluidSolver();
 
 	// flag to display velocity field
@@ -165,8 +171,8 @@ public class WebStart extends Applet
 
 				// draw velocity field
 				if (vkey && i % 5 == 1 && j % 5 == 1)  {
-					u = (int)( 50 * fs.u[I(i,j)] );
-					v = (int)( 50 * fs.v[I(i,j)] );
+					u = (int)( velArrowScale * fs.u[I(i,j)] );
+					v = (int)( velArrowScale * fs.v[I(i,j)] );
 					big.setColor(Color.red);
 					big.drawLine(dx, dy, dx+u, dy+v);
 				}
@@ -190,6 +196,10 @@ public class WebStart extends Applet
 		// reset solver
 		if (e.getKeyChar() == 'r')
 			 fs.reset();
+ 
+ 		// test - change solver viscosity
+		if (e.getKeyChar() == ' ')
+			 fs.visc = 0.1f;
  
 		// increase fluid grid size and reset applet
 		if (e.getKeyChar() == ']')  {

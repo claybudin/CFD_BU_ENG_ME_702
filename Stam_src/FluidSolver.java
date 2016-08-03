@@ -17,15 +17,27 @@ public class FluidSolver  {
 	int n, size;
 	float dt;
 
-	float visc = 0.0f;
-	float diff = 0.0f;
-
 	float[] tmp;
 
 	float[] d, dOld;
 	float[] u, uOld;
 	float[] v, vOld;
 	float[] curl;
+
+
+	// simulation parameters
+	// float visc = 0.0f;
+	// float diff = 0.0f;
+	float visc = 0.00025f;	// viscosity of fluid
+	float diff = 0.0001f;	// diffusion of density in fluid
+
+	// buoyancy constants
+	float buoyA = 0.000625f;
+	float buoyB = 0.025f;
+	// float buoyA = 0.0f;
+	// float buoyB = 0.0f;
+
+	int nSolveIters = 20;
 
 
 	/**
@@ -38,7 +50,6 @@ public class FluidSolver  {
 
 		reset();
 	}
-
 
 	/**
 	 * Reset the data structures.
@@ -59,7 +70,6 @@ public class FluidSolver  {
 		}
 	}
 
-
 	/**
 	 * Calculate the buoyancy force as part of the velocity solver.
 	 * Fbuoy = -a*d*Y + b*(T-Tamb)*Y where Y = (0,1). The constants
@@ -77,8 +87,6 @@ public class FluidSolver  {
 	 **/
 	public void buoyancy (float[] Fbuoy)  {
 		float Tamb = 0;
-		float a = 0.000625f;
-		float b = 0.025f;
 
 		// sum all temperatures
 		for (int i = 1; i <= n; i++)
@@ -91,9 +99,8 @@ public class FluidSolver  {
 		// for each cell compute buoyancy force
 		for (int i = 1; i <= n; i++)
 			for (int j = 1; j <= n; j++)
-				Fbuoy[I(i, j)] = a * d[I(i, j)] + -b * (d[I(i, j)] - Tamb);
+				Fbuoy[I(i, j)] = buoyA * d[I(i, j)] + -buoyB * (d[I(i, j)] - Tamb);
 	}
-
 
 	/**
 	 * Calculate the curl at position (i, j) in the fluid grid.
@@ -110,7 +117,6 @@ public class FluidSolver  {
 
 		return du_dy - dv_dx;
 	}
-
 
 	/**
 	 * Calculate the vorticity confinement force for each cell
@@ -143,14 +149,14 @@ public class FluidSolver  {
 
 				// Calculate vector length. (|n|)
 				// Add small factor to prevent divide by zeros.
-				length = (float) Math.sqrt(dw_dx * dw_dx + dw_dy * dw_dy)
-						 + 0.000001f;
+				length = (float)Math.sqrt(dw_dx * dw_dx + dw_dy * dw_dy) + 0.000001f;
 
 				// N = ( n/|n| )
 				dw_dx /= length;
 				dw_dy /= length;
 
 				v = curl(i, j);
+				//v *= 10;	// test - amplify vorticity
 
 				// N x w
 				Fvc_x[I(i, j)] = dw_dy * -v;
@@ -159,12 +165,10 @@ public class FluidSolver  {
 		}
 	}
 
-
 	/**
 	 * The basic velocity solving routine as described by Stam.
 	 **/
 	public void velocitySolver ()  {
-
 		// add velocity that was input by mouse
 		addSource(u, uOld);
 		addSource(v, vOld);
@@ -203,7 +207,6 @@ public class FluidSolver  {
 		for (int i = 0; i < size; i++) { uOld[i] = 0; vOld[i] = 0; }
 	}
 
-
 	/**
 	 * The basic density solving routine.
 	 **/
@@ -221,12 +224,10 @@ public class FluidSolver  {
 		for (int i = 0; i < size; i++) dOld[i] = 0;
 	}
 
-
 	private void addSource (float[] x, float[] x0)  {
 		for (int i = 0; i < size; i++)
 			 x[i] += dt * x0[i];
 	}
-
 
 	/**
 	 * Calculate the input array after advection. We start with an
@@ -280,8 +281,6 @@ public class FluidSolver  {
 		setBoundry(b, d);
 	}
 
-
-
 	/**
 	 * Recalculate the input array with diffusion effects.
 	 * Here we consider a stable method of diffusion by
@@ -301,7 +300,6 @@ public class FluidSolver  {
 		float a = dt * diff * n * n;
 		linearSolver(b, c, c0, a, 1 + 4 * a);
 	}
-
 
 	/**
 	 * Use project() to make the velocity a mass conserving,
@@ -348,14 +346,13 @@ public class FluidSolver  {
 		setBoundry(2, y);
 	}
 
-
 	/**
 	 * Iterative linear system solver using the Gauss-sidel
 	 * relaxation technique. Room for much improvement here...
 	 *
 	 **/
 	void linearSolver (int b, float[] x, float[] x0, float a, float c)  {
-		for (int k = 0; k < 20; k++)  {
+		for (int k = 0; k < nSolveIters; k++)  {
 			for (int i = 1; i <= n; i++)  {
 				for (int j = 1; j <= n; j++)  {
 					x[I(i, j)] = (a * ( x[I(i-1, j)] + x[I(i+1, j)]
@@ -366,7 +363,6 @@ public class FluidSolver  {
 			setBoundry(b, x);
 		}
 	}
-
 
 	// specifies simple boundry conditions.
 	private void setBoundry (int b, float[] x)  {
